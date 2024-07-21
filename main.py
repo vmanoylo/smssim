@@ -66,9 +66,10 @@ def simulate(update_interval, num_messages, num_senders, mean_wait_time, failure
         )
         sender_threads.append(sender_thread)
         sender_thread.start()
-    monitor.run()
+    threading.Thread(target=monitor.run).start()
     for sender_thread in sender_threads:
         sender_thread.join()
+    monitor.running = False
     print("DONE")
     monitor.show()
 
