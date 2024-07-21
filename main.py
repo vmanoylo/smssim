@@ -1,7 +1,7 @@
 import random
 import time
 import threading
-
+import argparse
 
 def producer(num_messages):
     for _ in range(num_messages):
@@ -83,11 +83,20 @@ def simulate(update_interval, num_messages, num_senders, mean_wait_time, failure
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--num_messages", type=int, default=1000)
+    parser.add_argument("--num_senders", type=int, default=100)
+    parser.add_argument("--mean_wait_time", type=float, default=1)
+    parser.add_argument("--failure_rate", type=float, default=0.1)
+    parser.add_argument("--update_interval", type=float, default=1)
+    args = parser.parse_args()
+
     variables = {
-        "num_messages": 1000,
-        "num_senders": 5,
-        "mean_wait_time": 1,
-        "failure_rate": 0.1,
-        "update_interval": 1,
+        "num_messages": args.num_messages,
+        "num_senders": args.num_senders,
+        "mean_wait_time": args.mean_wait_time,
+        "failure_rate": args.failure_rate,
+        "update_interval": args.update_interval,
     }
+
     simulate(**variables)
