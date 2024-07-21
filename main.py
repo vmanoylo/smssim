@@ -14,6 +14,7 @@ def producer(num_messages):
         phone_number = "".join(random.choices("1234567890", k=10))
         yield message, phone_number
 
+
 def sender(producer, update, mean_wait_time, failure_rate):
     for message, phone_number in producer:
         while random.random() < failure_rate:
@@ -31,25 +32,29 @@ class ProgressMonitor:
         self.running = True
         self.sent = 0
         self.failed = 0
-        self.total_time = 0
+        self.sending_time = 0
+        self.start_time = None
 
     def run(self):
+        self.start_time = time.time()
         while self.running:
             self.show()
             time.sleep(self.update_interval)
 
     def show(self):
-        messages = self.sent + self.failed
-        if messages == 0:
-            return
-        avg_time = self.total_time / messages if messages > 0 else float("inf")
+        t = time.time() - self.start_time
+        sent = self.sent
+        failed = self.failed
+        sending_time = self.sending_time
+        per_message = t / sent if sent > 0 else float("inf")
+        per_sender = sending_time / sent if sent > 0 else float("inf")
         print(
-            f"Messages sent: {self.sent}\nMessages failed: {self.failed}\nAverage time per message: {avg_time:.2f}"
+            f"Sent: {sent}\nFailed: {failed}\nTime: {t:.4f}\nPer message: {per_message:.4f}\nPer message per sender: {per_sender:.4f}\n"
         )
 
     def update(self, success, time):
-        self.total_time += time
         if success:
+            self.sending_time += time
             self.sent += 1
         else:
             self.failed += 1
@@ -76,9 +81,9 @@ def simulate(update_interval, num_messages, num_senders, mean_wait_time, failure
 
 if __name__ == "__main__":
     variables = {
-        "num_messages": 20,
+        "num_messages": 1000,
         "num_senders": 5,
-        "mean_wait_time": 0.1,
+        "mean_wait_time": 1,
         "failure_rate": 0.1,
         "update_interval": 1,
     }
