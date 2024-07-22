@@ -51,11 +51,10 @@ class ProgressMonitor:
 
     def run(self) -> None:
         self.start_time = time.time()
-        updates = 0
+        wake = self.start_time
         while self.running:
             self.show()
-            updates += 1
-            wake = self.start_time + updates * self.update_interval
+            wake += self.update_interval
             time.sleep(wake - time.time())
 
     def stop(self) -> None:
