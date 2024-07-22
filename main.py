@@ -114,10 +114,12 @@ def simulate(
         )
         sender_threads.append(sender_thread)
         sender_thread.start()
-    threading.Thread(target=monitor.run).start()
+    monitor_thread = threading.Thread(target=monitor.run)
+    monitor_thread.start()
     for sender_thread in sender_threads:
         sender_thread.join()
     monitor.stop()
+    monitor_thread.join()
 
 
 if __name__ == "__main__":
