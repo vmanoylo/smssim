@@ -84,12 +84,13 @@ class TestProgressMonitor(unittest.TestCase):
         self.total_time = t
         self.updates += 1
 
-    def test_show(self):
+    def test_interval(self):
         self.monitor_thread.start()
-        time.sleep(0.41)
+        time.sleep(0.45)
         self.monitor.stop()
         self.monitor_thread.join()
-        self.assertEqual(self.updates, 6)  # 5 updates + 1 stop
+        # 6 updates at 0, 0.1, 0.2, 0.3, 0.4, stop
+        self.assertEqual(self.updates, 6)  
         self.assertAlmostEqual(self.total_time, 0.5, delta=0.1)
 
     def test_update(self):
