@@ -2,8 +2,13 @@ import random
 import time
 import threading
 import argparse
+from typing import Iterable, Callable
 
-def producer(num_messages):
+Message = tuple[str, str]
+MessageQueue = Iterable[Message]
+
+
+def producer(num_messages: int) -> MessageQueue:
     for _ in range(num_messages):
         message = "".join(
             random.choices(
@@ -15,15 +20,20 @@ def producer(num_messages):
         yield message, phone_number
 
 
-def sender(producer, update, mean_wait_time, failure_rate):
+def sender(
+    producer: MessageQueue,
+    update: Callable[[bool, float], None],
+    mean_wait_time: float,
+    failure_rate: float,
+) -> None:
     for message, phone_number in producer:
-        t = random.uniform(0, 2*mean_wait_time)
+        t = random.uniform(0, 2 * mean_wait_time)
         time.sleep(t)
         update(random.random() >= failure_rate, t)
 
 
 class ProgressMonitor:
-    def __init__(self, update_interval):
+    def __init__(self, update_interval: float) -> None:
         self.update_interval = update_interval
         self.running = True
         self.sent = 0
@@ -31,7 +41,7 @@ class ProgressMonitor:
         self.sending_time = 0
         self.start_time = None
 
-    def run(self):
+    def run(self) -> None:
         self.start_time = time.time()
         updates = 0
         while self.running:
@@ -40,7 +50,7 @@ class ProgressMonitor:
             wake = self.start_time + updates * self.update_interval
             time.sleep(wake - time.time())
 
-    def show(self):
+    def show(self) -> None:
         t = time.time() - self.start_time
         sent = self.sent
         failed = self.failed
@@ -51,7 +61,7 @@ class ProgressMonitor:
             f"Sent: {sent}\nFailed: {failed}\nTime: {t:.4f}\nPer message: {per_message:.4f}\nPer message per sender: {per_sender:.4f}\n"
         )
 
-    def update(self, success, time):
+    def update(self, success: bool, time: float) -> None:
         if success:
             self.sending_time += time
             self.sent += 1
@@ -59,7 +69,13 @@ class ProgressMonitor:
             self.failed += 1
 
 
-def simulate(update_interval, num_messages, num_senders, mean_wait_time, failure_rate):
+def simulate(
+    update_interval: float,
+    num_senders: int,
+    mean_wait_time: float,
+    failure_rate: float,
+    num_messages: int = 1000,
+) -> None:
     monitor = ProgressMonitor(update_interval)
     messages = producer(num_messages)
     sender_threads = []
