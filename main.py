@@ -104,6 +104,12 @@ def simulate(
     num_messages: int = 1000,
     display: Callable[[int, int, float], None] = text_display,
 ) -> None:
+    if mean_wait_time < 0:
+        raise ValueError("mean_wait_time must be non-negative")
+    if not 0 <= failure_rate <= 1:
+        raise ValueError("failure_rate must be between 0 and 1")
+    if update_interval < 0:
+        raise ValueError("update_interval must be non-negative")
     monitor = ProgressMonitor(display, update_interval)
     messages = producer(num_messages)
     sender_threads = []

@@ -179,6 +179,50 @@ class TestSimulator(unittest.TestCase):
             self.sample_times[-1], expected_time, delta=expected_time * 0.2
         )
 
+    def test_zero_messages(self):
+        self.variables["num_messages"] = 0
+        main.simulate(**self.variables)
+        self.assertEqual(self.sent + self.failed, 0)
+        self.assertEqual(len(self.sample_times), 2)
+
+    def test_negative_messages(self):
+        self.variables["num_messages"] = -1
+        main.simulate(**self.variables)
+        self.assertEqual(self.sent + self.failed, 0)
+        self.assertEqual(len(self.sample_times), 2)
+
+    def test_zero_senders(self):
+        self.variables["num_senders"] = 0
+        main.simulate(**self.variables)
+        self.assertEqual(self.sent + self.failed, 0)
+        self.assertEqual(len(self.sample_times), 2)
+
+    def test_negative_senders(self):
+        self.variables["num_senders"] = -1
+        main.simulate(**self.variables)
+        self.assertEqual(self.sent + self.failed, 0)
+        self.assertEqual(len(self.sample_times), 2)
+
+    def test_negative_wait_time(self):
+        self.variables["mean_wait_time"] = -1
+        with self.assertRaises(ValueError):
+            main.simulate(**self.variables)
+
+    def test_negative_failure_rate(self):
+        self.variables["failure_rate"] = -1
+        with self.assertRaises(ValueError):
+            main.simulate(**self.variables)
+
+    def test_over_failure_rate(self):
+        self.variables["failure_rate"] = 1.1
+        with self.assertRaises(ValueError):
+            main.simulate(**self.variables)
+
+    def test_negative_interval(self):
+        self.variables["update_interval"] = -1
+        with self.assertRaises(ValueError):
+            main.simulate(**self.variables)
+
 
 if __name__ == "__main__":
     enable_timing_tests = False
