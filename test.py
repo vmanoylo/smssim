@@ -125,7 +125,30 @@ class TestProgressMonitor(unittest.TestCase):
 
 
 class TestSimulator(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.sent = 0
+        self.failed = 0
+        self.sample_times = []
+    
+    def mock_display(self, sent, failed, t):
+        self.sent = sent
+        self.failed = failed
+        self.sample_times.append(t)
+
+    def test_simulator(self):
+        main.simulate(
+            update_interval=0.1,
+            num_senders=10,
+            mean_wait_time=0.1,
+            failure_rate=0.1,
+            num_messages=100,
+            display=self.mock_display,
+        )
+        self.assertEqual(self.sent + self.failed, 100)
+        self.assertAlmostEqual(self.sent, 90, delta=9)
+        self.assertAlmostEqual(self.failed, 10, delta=1)
+        expected_time = 0.1 * 100 / 10
+        self.assertAlmostEqual(self.sample_times[-1], expected_time, delta=0.1)
 
 
 if __name__ == "__main__":
