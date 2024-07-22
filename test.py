@@ -21,7 +21,8 @@ class TestProducer(unittest.TestCase):
 
 class TestSender(unittest.TestCase):
     def setUp(self):
-        self.producer = main.producer(100)
+        self.messages = 1000
+        self.producer = main.producer(self.messages)
         self.passed = 0
         self.failed = 0
 
@@ -33,20 +34,20 @@ class TestSender(unittest.TestCase):
 
     def test_passing(self):
         main.sender(self.producer, self.update, 0, 0)
-        self.assertEqual(self.passed, 100)
+        self.assertEqual(self.passed, self.messages)
         self.assertEqual(self.failed, 0)
 
     def test_failing(self):
         main.sender(self.producer, self.update, 0, 1)
         self.assertEqual(self.passed, 0)
-        self.assertEqual(self.failed, 100)
+        self.assertEqual(self.failed, self.messages)
 
     def test_coin_flip(self):
         main.sender(self.producer, self.update, 0, 0.5)
         self.assertGreater(self.passed, 0)
         self.assertGreater(self.failed, 0)
-        self.assertEqual(self.passed + self.failed, 100)
-        self.assertAlmostEqual(self.passed, self.failed, delta=10)
+        self.assertEqual(self.passed + self.failed, self.messages)
+        self.assertAlmostEqual(self.passed, self.failed, delta=self.messages * 0.1)
 
 
 class TestProgressMonitor(unittest.TestCase):
