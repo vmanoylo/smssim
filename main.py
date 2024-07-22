@@ -154,12 +154,36 @@ def simulate(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--num_messages", type=int, default=1000)
-    parser.add_argument("--num_senders", type=int, default=100)
-    parser.add_argument("--mean_wait_time", type=float, default=1)
-    parser.add_argument("--failure_rate", type=float, default=0.1)
-    parser.add_argument("--update_interval", type=float, default=1)
-    parser.add_argument("--display", type=str, default="text")
+    parser.add_argument(
+        "--num_messages", type=int, default=1000, help="Number of messages to send."
+    )
+    parser.add_argument(
+        "--num_senders", type=int, default=100, help="Number of sender threads."
+    )
+    parser.add_argument(
+        "--mean_wait_time",
+        type=float,
+        default=1,
+        help="Mean wait time to send a message, non-negative.",
+    )
+    parser.add_argument(
+        "--failure_rate",
+        type=float,
+        default=0.1,
+        help="Failure rate for sending messages, between 0 and 1.",
+    )
+    parser.add_argument(
+        "--update_interval",
+        type=float,
+        default=1,
+        help="Interval for updating progress, non-negative.",
+    )
+    parser.add_argument(
+        "--display",
+        type=str,
+        default="text",
+        help="Display option for progress monitoring (text | text_then_graph | none).",
+    )
     args = parser.parse_args()
 
     variables = {
