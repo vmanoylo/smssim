@@ -173,11 +173,8 @@ if __name__ == "__main__":
         default="text_then_graph",
         help="Display option for progress monitoring (text | text_then_graph | none).",
     )
-    args = parser.parse_args()
-
-    variables = vars(args)
-    end_display = False
-    match args.display:
+    variables = vars(parser.parse_args())
+    match variables["display"]:
         case "none":
             variables["display"] = lambda *_: None
             simulate(**variables)
@@ -190,7 +187,15 @@ if __name__ == "__main__":
             simulate(**variables)
             from matplotlib import pyplot as plt
 
-            title = f"num_messages={args.num_messages}, num_senders={args.num_senders}, mean_wait_time={args.mean_wait_time}, failure_rate={args.failure_rate}"
+            title = ", ".join(
+                f"{k}={variables[k]}"
+                for k in [
+                    "num_messages",
+                    "num_senders",
+                    "mean_wait_time",
+                    "failure_rate",
+                ]
+            )
             plt.figure(num=title)
             plt.plot(display.times, display.sent, label="Sent")
             plt.plot(display.times, display.failed, label="Failed")
@@ -199,5 +204,5 @@ if __name__ == "__main__":
             plt.title(title, wrap=True)
             plt.legend()
             plt.show()
-        case _:
-            raise ValueError(f"Unknown display option: {args.display}")
+        case x:
+            raise ValueError(f"Unknown display option: {x}")
