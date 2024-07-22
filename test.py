@@ -73,16 +73,14 @@ class TestProgressMonitor(unittest.TestCase):
     def setUp(self):
         self.sent = 0
         self.failed = 0
-        self.total_time = 0
-        self.updates = 0
+        self.sample_times = []
         self.monitor = main.ProgressMonitor(self.mock_display, 0.1)
         self.monitor_thread = threading.Thread(target=self.monitor.run)
 
     def mock_display(self, sent, failed, t):
         self.sent = sent
         self.failed = failed
-        self.total_time = t
-        self.updates += 1
+        self.sample_times.append(t)
 
     def test_interval(self):
         self.monitor_thread.start()
@@ -90,8 +88,9 @@ class TestProgressMonitor(unittest.TestCase):
         self.monitor.stop()
         self.monitor_thread.join()
         # 6 updates at 0, 0.1, 0.2, 0.3, 0.4, stop
-        self.assertEqual(self.updates, 6)  
-        self.assertAlmostEqual(self.total_time, 0.5, delta=0.1)
+        self.assertEqual(len(self.sample_times), 6)
+        for i in range(6):
+            self.assertAlmostEqual(self.sample_times[i], i * 0.1, delta=0.01)
 
     def test_update(self):
         for _ in range(10):
@@ -117,8 +116,8 @@ class TestProgressMonitor(unittest.TestCase):
         thread.join()
         self.assertEqual(self.sent, 0)
         self.assertEqual(self.failed, 0)
-        self.assertGreater(self.total_time, 0)
-        self.assertGreater(self.updates, 0)
+        self.assertGreater(len(self.sample_times), 0)
+        self.assertGreater(self.sample_times[-1], 0)
 
     def test_negative_interval(self):
         with self.assertRaises(ValueError):
