@@ -52,6 +52,24 @@ class TestSender(unittest.TestCase):
         self.assertEqual(passed, 0)
         self.assertEqual(failed, 100)
 
+    def test_coin_flip(self):
+        producer = main.producer(100)
+        passed = 0
+        failed = 0
+
+        def update(success, time):
+            nonlocal passed, failed
+            if success:
+                passed += 1
+            else:
+                failed += 1
+
+        main.sender(producer, update, 0, 0.5)
+        self.assertGreater(passed, 0)
+        self.assertGreater(failed, 0)
+        self.assertEqual(passed + failed, 100)
+        self.assertAlmostEqual(passed, failed, delta=10)
+
 
 class TestProgressMonitor(unittest.TestCase):
     pass
