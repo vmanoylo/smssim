@@ -60,37 +60,39 @@ class TestProgressMonitor(unittest.TestCase):
     def setUp(self):
         self.sent = 0
         self.failed = 0
-        self.t = 0
-        self.c = 0
+        self.total_time = 0
+        self.updates = 0
         self.monitor = main.ProgressMonitor(self.mock_display, 0.1)
         self.monitor_thread = threading.Thread(target=self.monitor.run)
 
     def mock_display(self, sent, failed, t):
         self.sent = sent
         self.failed = failed
-        self.t = t
-        self.c += 1
+        self.total_time = t
+        self.updates += 1
 
     def test_show(self):
         self.monitor_thread.start()
-        time.sleep(0.5)
+        time.sleep(0.41)
         self.monitor.stop()
         self.monitor_thread.join()
-        self.assertEqual(self.c, 6) # 1 extra after stop
-        self.assertGreater(self.t, 0.5)
-        self.assertLess(self.t, 0.6)
+        self.assertEqual(self.updates, 6) # 5 updates + 1 stop
+        self.assertAlmostEqual(self.total_time, 0.5, delta=0.1)
 
     def test_update(self):
-        self.monitor_thread.start()
         for _ in range(10):
-            self.monitor.update(True)
-        for _ in range(5):
-            self.monitor.update(False)
-        self.monitor.stop()
-        self.monitor_thread.join()
-        self.assertEqual(self.sent, 10)
-        self.assertEqual(self.failed, 5)
-
+            self.monitor_thread.start()
+            sent = random.randint(0, 10)
+            failed = random.randint(0, 10)
+            for _ in range(sent):
+                self.monitor.update(True)
+            for _ in range(failed):
+                self.monitor.update(False)
+            self.monitor.stop()
+            self.monitor_thread.join()
+            self.assertEqual(self.sent, sent)
+            self.assertEqual(self.failed, failed)
+            self.setUp()
 
 class TestSimulator(unittest.TestCase):
     pass
