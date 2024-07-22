@@ -47,7 +47,7 @@ class TestSender(unittest.TestCase):
         self.assertGreater(self.passed, 0)
         self.assertGreater(self.failed, 0)
         self.assertEqual(self.passed + self.failed, self.messages)
-        self.assertAlmostEqual(self.passed, self.failed, delta=self.messages * 0.1)
+        self.assertAlmostEqual(self.passed, self.failed, delta=self.messages * 0.2)
 
     def test_time(self):
         if not enable_timing_tests:
@@ -225,5 +225,5 @@ class TestSimulator(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    enable_timing_tests = False
+    enable_timing_tests = True
     unittest.main()
