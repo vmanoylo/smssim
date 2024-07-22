@@ -96,6 +96,30 @@ def text_display(sent: int, failed: int, t: float) -> None:
     )
 
 
+class TextThenGraphDisplay:
+    def __init__(self):
+        self.sent = []
+        self.failed = []
+        self.times = []
+
+    def display(self, sent: int, failed: int, t: float) -> None:
+        self.sent.append(sent)
+        self.failed.append(failed)
+        self.times.append(t)
+        text_display(sent, failed, t)
+
+    def graph(self):
+        print("Graphing")
+        from matplotlib import pyplot as plt
+
+        plt.plot(self.times, self.sent, label="Sent")
+        plt.plot(self.times, self.failed, label="Failed")
+        plt.xlabel("Time (seconds)")
+        plt.ylabel("Messages")
+        plt.legend()
+        plt.show()
+
+
 def simulate(
     update_interval: float,
     num_senders: int,
@@ -148,7 +172,14 @@ if __name__ == "__main__":
     match args.display:
         case "text":
             variables["display"] = text_display
+        case "text_then_graph":
+            display = TextThenGraphDisplay()
+            variables["display"] = display.display
         case "none":
             variables["display"] = lambda *_: None
+        case _:
+            raise ValueError(f"Unknown display option: {args.display}")
 
     simulate(**variables)
+    if args.display == "text_then_graph":
+        display.graph()
