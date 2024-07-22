@@ -171,7 +171,7 @@ if __name__ == "__main__":
         "--display",
         type=str,
         default="text_then_graph",
-        help="Display option for progress monitoring (text | text_then_graph | none).",
+        help="Display option for progress monitoring (text | text_then_graph | predict | none).",
     )
     variables = vars(parser.parse_args())
     match variables["display"]:
@@ -199,6 +199,29 @@ if __name__ == "__main__":
             plt.figure(num=title)
             plt.plot(display.times, display.sent, label="Sent")
             plt.plot(display.times, display.failed, label="Failed")
+            plt.xlabel("Time (seconds)")
+            plt.ylabel("Messages")
+            plt.title(title, wrap=True)
+            plt.legend()
+            plt.show()
+        case "predict":
+            from matplotlib import pyplot as plt
+
+            title = ", ".join(
+                f"{k}={variables[k]}"
+                for k in [
+                    "num_messages",
+                    "num_senders",
+                    "mean_wait_time",
+                    "failure_rate",
+                ]
+            )
+            n = variables["num_messages"]
+            t = n * variables["mean_wait_time"] / variables["num_senders"]
+            failed = n * variables["failure_rate"]
+            sent = n - failed
+            plt.plot([0, t], [0, sent], label="Sent")
+            plt.plot([0, t], [0, failed], label="Failed")
             plt.xlabel("Time (seconds)")
             plt.ylabel("Messages")
             plt.title(title, wrap=True)
