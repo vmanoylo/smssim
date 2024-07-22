@@ -58,7 +58,11 @@ class ProgressMonitor:
         while self.running:
             self.show()
             wake += self.update_interval
-            time.sleep(wake - time.time())
+            wait = wake - time.time()
+            if wait > 0:
+                time.sleep(wake - time.time())
+            else:  # skipped frame
+                wake = time.time()
         self.show()
 
     def stop(self) -> None:
