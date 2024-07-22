@@ -58,6 +58,9 @@ class ProgressMonitor:
             wake = self.start_time + updates * self.update_interval
             time.sleep(wake - time.time())
 
+    def stop(self) -> None:
+        self.running = False
+
     def show(self) -> None:
         t = time.time() - self.start_time
         sent = self.sent
@@ -97,7 +100,7 @@ def simulate(
     threading.Thread(target=monitor.run).start()
     for sender_thread in sender_threads:
         sender_thread.join()
-    monitor.running = False
+    monitor.stop()
     print("DONE")
     monitor.show()
 
