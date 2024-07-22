@@ -109,7 +109,6 @@ class TextThenGraphDisplay:
         text_display(sent, failed, t)
 
     def graph(self):
-        print("Graphing")
         from matplotlib import pyplot as plt
 
         plt.plot(self.times, self.sent, label="Sent")
