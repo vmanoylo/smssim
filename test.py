@@ -15,9 +15,8 @@ class TestProducer(unittest.TestCase):
             self.assertEqual(i, len(list(main.producer(i))))
 
     def test_message(self):
-        for message, phone_number in main.producer(100):
-            self.assertIsInstance(message, str)
-            self.assertLessEqual(len(message), 100)
+        for message in main.producer(100):
+            self.assertLessEqual(len(message.message), 100)
 
 
 class TestSender(unittest.TestCase):

@@ -4,8 +4,15 @@ import threading
 import argparse
 import string
 from typing import Iterable, Callable
+from dataclasses import dataclass
 
-Message = tuple[str, str]
+
+@dataclass
+class Message:
+    message: str
+    phone: str
+
+
 MessageQueue = Iterable[Message]
 
 
@@ -18,7 +25,7 @@ def producer(num_messages: int) -> MessageQueue:
             )
         )
         phone_number = "".join(random.choices("1234567890", k=10))
-        yield message, phone_number
+        yield Message(message, phone_number)
 
 
 def sender(
@@ -27,7 +34,7 @@ def sender(
     mean_wait_time: float,
     failure_rate: float,
 ) -> None:
-    for message, phone_number in producer:
+    for _ in producer:
         t = random.uniform(0, 2 * mean_wait_time)
         time.sleep(t)
         update(random.random() >= failure_rate, t)
