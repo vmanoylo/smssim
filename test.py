@@ -107,6 +107,10 @@ class TestProgressMonitor(unittest.TestCase):
         self.assertGreater(self.total_time, 0)
         self.assertGreater(self.updates, 0)
 
+    def test_negative_interval(self):
+        with self.assertRaises(ValueError):
+            main.ProgressMonitor(self.mock_display, -1)
+
 
 class TestSimulator(unittest.TestCase):
     pass

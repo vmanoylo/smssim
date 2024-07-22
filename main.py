@@ -44,6 +44,8 @@ class ProgressMonitor:
     def __init__(
         self, display: Callable[[int, int, float], None], update_interval: float
     ) -> None:
+        if update_interval < 0:
+            raise ValueError("update_interval must be non-negative")
         self.display = display
         self.update_interval = update_interval
         self.running = True
