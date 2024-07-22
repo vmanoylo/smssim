@@ -65,11 +65,11 @@ class ProgressMonitor:
         t = time.time() - self.start_time
         sent = self.sent
         failed = self.failed
-        sending_time = self.sending_time
-        per_message = t / sent if sent > 0 else float("inf")
-        per_sender = sending_time / sent if sent > 0 else float("inf")
+        messages = sent + failed
+        per_sent = t / sent if sent > 0 else float("inf")
+        per_message = t / messages if messages > 0 else float("inf")
         print(
-            f"Sent: {sent}\nFailed: {failed}\nTime: {t:.4f}\nPer message: {per_message:.4f}\nPer message per sender: {per_sender:.4f}\n"
+            f"Sent: {sent}\nFailed: {failed}\nTime: {t:.4f}\nPer message: {per_message:.4f}\nPer sent message: {per_sent:.4f}\n"
         )
 
     def update(self, success: bool, time: float) -> None:
