@@ -186,14 +186,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    variables = {
-        "num_messages": args.num_messages,
-        "num_senders": args.num_senders,
-        "mean_wait_time": args.mean_wait_time,
-        "failure_rate": args.failure_rate,
-        "update_interval": args.update_interval,
-    }
-    match args.display:
+    variables = vars(args)
+    match variables["display"]:
         case "text":
             variables["display"] = text_display
         case "text_then_graph":
