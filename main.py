@@ -108,7 +108,7 @@ class TextThenGraphDisplay:
         self.times.append(t)
         text_display(sent, failed, t)
 
-    def graph(self):
+    def end(self):
         from matplotlib import pyplot as plt
 
         plt.plot(self.times, self.sent, label="Sent")
@@ -180,23 +180,26 @@ if __name__ == "__main__":
     parser.add_argument(
         "--display",
         type=str,
-        default="text",
+        default="text_then_graph",
         help="Display option for progress monitoring (text | text_then_graph | none).",
     )
     args = parser.parse_args()
 
     variables = vars(args)
-    match variables["display"]:
+    end_display = False
+    match args.display:
         case "text":
             variables["display"] = text_display
         case "text_then_graph":
             display = TextThenGraphDisplay()
             variables["display"] = display.display
+            end_display = True
         case "none":
             variables["display"] = lambda *_: None
         case _:
             raise ValueError(f"Unknown display option: {args.display}")
 
     simulate(**variables)
-    if args.display == "text_then_graph":
-        display.graph()
+
+    if end_display:
+        display.end()
