@@ -34,6 +34,10 @@ def sender(
     mean_wait_time: float,
     failure_rate: float,
 ) -> None:
+    if mean_wait_time < 0:
+        raise ValueError("mean_wait_time must be non-negative")
+    if not 0 <= failure_rate <= 1:
+        raise ValueError("failure_rate must be between 0 and 1")
     for _ in producer:
         t = random.uniform(0, 2 * mean_wait_time)
         time.sleep(t)

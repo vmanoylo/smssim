@@ -60,6 +60,14 @@ class TestSender(unittest.TestCase):
         with self.assertRaises(ValueError):
             main.sender(self.producer, self.update, -1, 0)
 
+    def test_negative_failure(self):
+        with self.assertRaises(ValueError):
+            main.sender(self.producer, self.update, 0, -1)
+
+    def test_over_failure(self):
+        with self.assertRaises(ValueError):
+            main.sender(self.producer, self.update, 0, 1.1)
+
 
 class TestProgressMonitor(unittest.TestCase):
     def setUp(self):
