@@ -1,3 +1,4 @@
+import time
 import unittest
 import random
 
@@ -49,6 +50,11 @@ class TestSender(unittest.TestCase):
         self.assertEqual(self.passed + self.failed, self.messages)
         self.assertAlmostEqual(self.passed, self.failed, delta=self.messages * 0.1)
 
+    def test_time(self):
+        start = time.time()
+        main.sender(main.producer(100), self.update, 0.01, 0)
+        end = time.time()
+        self.assertAlmostEqual(end - start, 1, delta=0.2)
 
 class TestProgressMonitor(unittest.TestCase):
     pass
