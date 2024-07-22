@@ -17,13 +17,9 @@ def producer(num_messages):
 
 def sender(producer, update, mean_wait_time, failure_rate):
     for message, phone_number in producer:
-        while random.random() < failure_rate:
-            t = random.uniform(0, 2*mean_wait_time)
-            time.sleep(t)
-            update(False, t)
         t = random.uniform(0, 2*mean_wait_time)
         time.sleep(t)
-        update(True, t)
+        update(random.random() >= failure_rate, t)
 
 
 class ProgressMonitor:
