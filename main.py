@@ -96,7 +96,7 @@ def text_display(sent: int, failed: int, t: float) -> None:
     )
 
 
-class TextThenGraphDisplay:
+class TrackingTextDisplay:
     def __init__(self):
         self.sent = []
         self.failed = []
@@ -107,16 +107,6 @@ class TextThenGraphDisplay:
         self.failed.append(failed)
         self.times.append(t)
         text_display(sent, failed, t)
-
-    def end(self):
-        from matplotlib import pyplot as plt
-
-        plt.plot(self.times, self.sent, label="Sent")
-        plt.plot(self.times, self.failed, label="Failed")
-        plt.xlabel("Time (seconds)")
-        plt.ylabel("Messages")
-        plt.legend()
-        plt.show()
 
 
 def simulate(
@@ -188,18 +178,26 @@ if __name__ == "__main__":
     variables = vars(args)
     end_display = False
     match args.display:
-        case "text":
-            variables["display"] = text_display
-        case "text_then_graph":
-            display = TextThenGraphDisplay()
-            variables["display"] = display.display
-            end_display = True
         case "none":
             variables["display"] = lambda *_: None
+            simulate(**variables)
+        case "text":
+            variables["display"] = text_display
+            simulate(**variables)
+        case "text_then_graph":
+            display = TrackingTextDisplay()
+            variables["display"] = display.display
+            simulate(**variables)
+            from matplotlib import pyplot as plt
+
+            title = f"num_messages={args.num_messages}, num_senders={args.num_senders}, mean_wait_time={args.mean_wait_time}, failure_rate={args.failure_rate}"
+            plt.figure(num=title)
+            plt.plot(display.times, display.sent, label="Sent")
+            plt.plot(display.times, display.failed, label="Failed")
+            plt.xlabel("Time (seconds)")
+            plt.ylabel("Messages")
+            plt.title(title, wrap=True)
+            plt.legend()
+            plt.show()
         case _:
             raise ValueError(f"Unknown display option: {args.display}")
-
-    simulate(**variables)
-
-    if end_display:
-        display.end()
