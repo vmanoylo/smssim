@@ -5,12 +5,13 @@ import main
 
 
 class TestProducer(unittest.TestCase):
+    def test_negative(self):
+        for i in random.choices(range(1000), k=100):
+            self.assertEqual(0, len(list(main.producer(-i))))
+
     def test_count(self):
         for i in random.choices(range(1000), k=100):
-            c = 0
-            for _ in main.producer(i):
-                c += 1
-            self.assertEqual(i, c)
+            self.assertEqual(i, len(list(main.producer(i))))
 
     def test_message(self):
         for message, phone_number in main.producer(100):
