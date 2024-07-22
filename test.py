@@ -20,55 +20,33 @@ class TestProducer(unittest.TestCase):
 
 
 class TestSender(unittest.TestCase):
+    def setUp(self):
+        self.producer = main.producer(100)
+        self.passed = 0
+        self.failed = 0
+
+    def update(self, success, time):
+        if success:
+            self.passed += 1
+        else:
+            self.failed += 1
+
     def test_passing(self):
-        producer = main.producer(100)
-        passed = 0
-        failed = 0
-
-        def update(success, time):
-            nonlocal passed, failed
-            if success:
-                passed += 1
-            else:
-                failed += 1
-
-        main.sender(producer, update, 0, 0)
-        self.assertEqual(passed, 100)
-        self.assertEqual(failed, 0)
+        main.sender(self.producer, self.update, 0, 0)
+        self.assertEqual(self.passed, 100)
+        self.assertEqual(self.failed, 0)
 
     def test_failing(self):
-        producer = main.producer(100)
-        passed = 0
-        failed = 0
-
-        def update(success, time):
-            nonlocal passed, failed
-            if success:
-                passed += 1
-            else:
-                failed += 1
-
-        main.sender(producer, update, 0, 1)
-        self.assertEqual(passed, 0)
-        self.assertEqual(failed, 100)
+        main.sender(self.producer, self.update, 0, 1)
+        self.assertEqual(self.passed, 0)
+        self.assertEqual(self.failed, 100)
 
     def test_coin_flip(self):
-        producer = main.producer(100)
-        passed = 0
-        failed = 0
-
-        def update(success, time):
-            nonlocal passed, failed
-            if success:
-                passed += 1
-            else:
-                failed += 1
-
-        main.sender(producer, update, 0, 0.5)
-        self.assertGreater(passed, 0)
-        self.assertGreater(failed, 0)
-        self.assertEqual(passed + failed, 100)
-        self.assertAlmostEqual(passed, failed, delta=10)
+        main.sender(self.producer, self.update, 0, 0.5)
+        self.assertGreater(self.passed, 0)
+        self.assertGreater(self.failed, 0)
+        self.assertEqual(self.passed + self.failed, 100)
+        self.assertAlmostEqual(self.passed, self.failed, delta=10)
 
 
 class TestProgressMonitor(unittest.TestCase):
