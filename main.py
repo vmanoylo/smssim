@@ -2,6 +2,7 @@ import random
 import time
 import threading
 import argparse
+import string
 from typing import Iterable, Callable
 
 Message = tuple[str, str]
@@ -12,8 +13,8 @@ def producer(num_messages: int) -> MessageQueue:
     for _ in range(num_messages):
         message = "".join(
             random.choices(
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
-                k=random.randint(1, 100),
+                string.printable,
+                k=random.randint(0, 100),
             )
         )
         phone_number = "".join(random.choices("1234567890", k=10))
