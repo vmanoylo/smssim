@@ -102,8 +102,9 @@ def simulate(
     mean_wait_time: float,
     failure_rate: float,
     num_messages: int = 1000,
+    display: Callable[[int, int, float], None] = text_display,
 ) -> None:
-    monitor = ProgressMonitor(text_display, update_interval)
+    monitor = ProgressMonitor(display, update_interval)
     messages = producer(num_messages)
     sender_threads = []
     for _ in range(num_senders):
@@ -126,6 +127,7 @@ if __name__ == "__main__":
     parser.add_argument("--mean_wait_time", type=float, default=1)
     parser.add_argument("--failure_rate", type=float, default=0.1)
     parser.add_argument("--update_interval", type=float, default=1)
+    parser.add_argument("--display", type=str, default="text")
     args = parser.parse_args()
 
     variables = {
@@ -135,5 +137,10 @@ if __name__ == "__main__":
         "failure_rate": args.failure_rate,
         "update_interval": args.update_interval,
     }
+    match args.display:
+        case "text":
+            variables["display"] = text_display
+        case "none":
+            variables["display"] = lambda *_: None
 
     simulate(**variables)
