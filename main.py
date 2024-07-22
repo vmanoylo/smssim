@@ -41,7 +41,10 @@ def sender(
 
 
 class ProgressMonitor:
-    def __init__(self, update_interval: float) -> None:
+    def __init__(
+        self, display: Callable[[int, int, float], None], update_interval: float
+    ) -> None:
+        self.display = display
         self.update_interval = update_interval
         self.running = True
         self.sent = 0
@@ -56,6 +59,7 @@ class ProgressMonitor:
             self.show()
             wake += self.update_interval
             time.sleep(wake - time.time())
+        self.show()
 
     def stop(self) -> None:
         self.running = False
@@ -64,18 +68,22 @@ class ProgressMonitor:
         t = time.time() - self.start_time
         sent = self.sent
         failed = self.failed
-        messages = sent + failed
-        per_sent = t / sent if sent > 0 else float("inf")
-        per_message = t / messages if messages > 0 else float("inf")
-        print(
-            f"Sent: {sent}\nFailed: {failed}\nTime: {t:.4f}\nPer message: {per_message:.4f}\nPer sent message: {per_sent:.4f}\n"
-        )
+        self.display(sent, failed, t)
 
     def update(self, success: bool) -> None:
         if success:
             self.sent += 1
         else:
             self.failed += 1
+
+
+def text_display(sent: int, failed: int, t: float) -> None:
+    messages = sent + failed
+    per_sent = t / sent if sent > 0 else float("inf")
+    per_message = t / messages if messages > 0 else float("inf")
+    print(
+        f"Sent: {sent}\nFailed: {failed}\nTime: {t:.4f}\nPer message: {per_message:.4f}\nPer sent message: {per_sent:.4f}\n"
+    )
 
 
 def simulate(
@@ -85,7 +93,7 @@ def simulate(
     failure_rate: float,
     num_messages: int = 1000,
 ) -> None:
-    monitor = ProgressMonitor(update_interval)
+    monitor = ProgressMonitor(text_display, update_interval)
     messages = producer(num_messages)
     sender_threads = []
     for _ in range(num_senders):
@@ -99,8 +107,6 @@ def simulate(
     for sender_thread in sender_threads:
         sender_thread.join()
     monitor.stop()
-    print("DONE")
-    monitor.show()
 
 
 if __name__ == "__main__":
