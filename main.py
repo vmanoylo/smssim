@@ -30,14 +30,14 @@ def producer(num_messages: int) -> MessageQueue:
 
 def sender(
     producer: MessageQueue,
-    update: Callable[[bool, float], None],
+    update: Callable[[bool], None],
     mean_wait_time: float,
     failure_rate: float,
 ) -> None:
     for _ in producer:
         t = random.uniform(0, 2 * mean_wait_time)
         time.sleep(t)
-        update(random.random() >= failure_rate, t)
+        update(random.random() >= failure_rate)
 
 
 class ProgressMonitor:
@@ -71,9 +71,8 @@ class ProgressMonitor:
             f"Sent: {sent}\nFailed: {failed}\nTime: {t:.4f}\nPer message: {per_message:.4f}\nPer sent message: {per_sent:.4f}\n"
         )
 
-    def update(self, success: bool, time: float) -> None:
+    def update(self, success: bool) -> None:
         if success:
-            self.sending_time += time
             self.sent += 1
         else:
             self.failed += 1

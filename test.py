@@ -26,7 +26,7 @@ class TestSender(unittest.TestCase):
         self.passed = 0
         self.failed = 0
 
-    def update(self, success, time):
+    def update(self, success):
         if success:
             self.passed += 1
         else:
