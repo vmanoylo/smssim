@@ -56,6 +56,10 @@ class TestSender(unittest.TestCase):
         end = time.time()
         self.assertAlmostEqual(end - start, 1, delta=0.2)
 
+    def test_negative_mean(self):
+        with self.assertRaises(ValueError):
+            main.sender(self.producer, self.update, -1, 0)
+
 
 class TestProgressMonitor(unittest.TestCase):
     def setUp(self):
