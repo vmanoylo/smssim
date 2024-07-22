@@ -23,6 +23,7 @@ Please submit the code test at least two business days before the interview, so 
 - senders use a uniform distribution around the mean wait time
 - text_then_graph display option requires matplotlib to be installed
 - all the code is contained in main.py
-- configuration is done through command line arguments, run `python3 main.py -h` to see them all
+- configuration is done through command line arguments, run `python3 main.py -h` to see them all and their defaults
+- `python3 main.py --display predict` to create an expected graph without running the simulation
 - tests are contained in test.py, run with `python3 test.py`
 - some tests measure the timing of the program and are slower and less reliable, run with `python3 test.py --skip-timing-tests` to skip these tests

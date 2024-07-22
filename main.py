@@ -144,30 +144,38 @@ def simulate(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--num_messages", type=int, default=1000, help="Number of messages to send."
+        "-n",
+        "--num_messages",
+        type=int,
+        default=1000,
+        help="Number of messages to send.",
     )
     parser.add_argument(
-        "--num_senders", type=int, default=100, help="Number of sender threads."
+        "-s", "--num_senders", type=int, default=100, help="Number of sender threads."
     )
     parser.add_argument(
+        "-t",
         "--mean_wait_time",
         type=float,
         default=1,
         help="Mean wait time to send a message, non-negative.",
     )
     parser.add_argument(
+        "-f",
         "--failure_rate",
         type=float,
         default=0.1,
         help="Failure rate for sending messages, between 0 and 1.",
     )
     parser.add_argument(
+        "-u",
         "--update_interval",
         type=float,
         default=1,
         help="Interval for updating progress, non-negative.",
     )
     parser.add_argument(
+        "-d",
         "--display",
         type=str,
         default="text_then_graph",
@@ -202,6 +210,7 @@ if __name__ == "__main__":
             variables["display"] = display.display
             simulate(**variables)
             from matplotlib import pyplot as plt
+
             decorate(plt)
             plt.plot(display.times, display.sent, label="Sent")
             plt.plot(display.times, display.failed, label="Failed")
@@ -213,6 +222,7 @@ if __name__ == "__main__":
             failed = n * variables["failure_rate"]
             sent = n - failed
             from matplotlib import pyplot as plt
+
             decorate(plt)
 
             plt.plot([0, t], [0, sent], label="Sent")
