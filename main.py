@@ -59,23 +59,23 @@ class ProgressMonitor:
         self.start_time = None
 
     def run(self) -> None:
-        self.start_time = time.time()
+        self.start_time = time.monotonic()
         wake = self.start_time
         while self.running:
             self.show()
             wake += self.update_interval
-            wait = wake - time.time()
+            wait = wake - time.monotonic()
             if wait > 0:
-                time.sleep(wake - time.time())
+                time.sleep(wake - time.monotonic())
             else:  # skipped frame
-                wake = time.time()
+                wake = time.monotonic()
         self.show()
 
     def stop(self) -> None:
         self.running = False
 
     def show(self) -> None:
-        t = time.time() - self.start_time
+        t = time.monotonic() - self.start_time
         sent = self.sent
         failed = self.failed
         self.display(sent, failed, t)
