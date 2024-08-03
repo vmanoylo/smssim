@@ -13,10 +13,12 @@ class Message:
     phone: str
 
 
-MessageQueue = Iterable[Message]
+import queue
+
+MessageQueue = queue.Queue[Message | None]
 
 
-def producer(num_messages: int) -> MessageQueue:
+def producer(num_messages: int, queue: MessageQueue, num_senders: int) -> None:
     for _ in range(num_messages):
         message = "".join(
             random.choices(
@@ -25,11 +27,13 @@ def producer(num_messages: int) -> MessageQueue:
             )
         )
         phone_number = "".join(random.choices("1234567890", k=10))
-        yield Message(message, phone_number)
+        queue.put(Message(message, phone_number))
+    for _ in range(num_senders):
+        queue.put(None)
 
 
 def sender(
-    producer: MessageQueue,
+    messages: MessageQueue,
     update: Callable[[bool], None],
     mean_wait_time: float,
     failure_rate: float,
@@ -38,7 +42,10 @@ def sender(
         raise ValueError("mean_wait_time must be non-negative")
     if not 0 <= failure_rate <= 1:
         raise ValueError("failure_rate must be between 0 and 1")
-    for _ in producer:
+    while True:
+        message = messages.get()
+        if message is None:
+            break
         t = random.uniform(0, 2 * mean_wait_time)
         time.sleep(t)
         update(random.random() >= failure_rate)
@@ -124,12 +131,13 @@ def simulate(
     if update_interval < 0:
         raise ValueError("update_interval must be non-negative")
     monitor = ProgressMonitor(display, update_interval)
-    messages = producer(num_messages)
+    queue = MessageQueue()
+    threading.Thread(target=producer, args=(num_messages, queue, num_senders)).start()
     sender_threads = []
     for _ in range(num_senders):
         sender_thread = threading.Thread(
             target=sender,
-            args=(messages, monitor.update, mean_wait_time, failure_rate),
+            args=(queue, monitor.update, mean_wait_time, failure_rate),
         )
         sender_threads.append(sender_thread)
         sender_thread.start()
