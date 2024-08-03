@@ -16,7 +16,6 @@ class Message:
 @dataclass
 class MessageResponse:
     success: bool
-    time: float
 
 
 import queue
@@ -52,9 +51,7 @@ def sender(
     for _ in iter(messages.get, None):
         t = random.uniform(0, 2 * mean_wait_time)
         time.sleep(t)
-        responses.put(
-            MessageResponse(random.random() >= failure_rate, time.monotonic())
-        )
+        responses.put(MessageResponse(random.random() >= failure_rate))
     responses.put(None)
 
 
@@ -68,20 +65,33 @@ def monitor(
     failed = 0
     start_time = time.monotonic()
     next_update = start_time + update_interval
+
+    def count():
+        nonlocal num_senders
+        sent, failed = 0, 0
+        while True:
+            try:
+                response = responses.get_nowait()
+                if response is None:
+                    num_senders -= 1
+                    continue
+                if response.success:
+                    sent += 1
+                else:
+                    failed += 1
+            except queue.Empty:
+                return sent, failed
+
+    time.sleep(update_interval)
     while num_senders > 0:
-        response = responses.get()
-        if response is None:
-            num_senders -= 1
-            continue
-        # TODO: handle out of order messages
-        # TODO: monitor won't update if no messages are sent in the interval
-        while response.time > next_update:
-            display(sent, failed, next_update - start_time)
+        s, f = count()
+        sent += s
+        failed += f
+        t = time.monotonic()
+        display(sent, failed, t - start_time)
+        while t >= next_update:
             next_update += update_interval
-        if response.success:
-            sent += 1
-        else:
-            failed += 1
+        time.sleep(next_update - t)
 
 
 def text_display(sent: int, failed: int, t: float) -> None:
