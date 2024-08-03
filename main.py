@@ -73,13 +73,15 @@ def monitor(
         if response is None:
             num_senders -= 1
             continue
+        # TODO: handle out of order messages
+        # TODO: monitor won't update if no messages are sent in the interval
+        while response.time > next_update:
+            display(sent, failed, next_update - start_time)
+            next_update += update_interval
         if response.success:
             sent += 1
         else:
             failed += 1
-        if response.time > next_update: # TODO: handle out of order messages
-            display(sent, failed, response.time - start_time)
-            next_update += update_interval
 
 
 def text_display(sent: int, failed: int, t: float) -> None:
