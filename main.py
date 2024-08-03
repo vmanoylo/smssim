@@ -13,9 +13,16 @@ class Message:
     phone: str
 
 
+@dataclass
+class MessageResponse:
+    success: bool
+    time: float
+
+
 import queue
 
 MessageQueue = queue.Queue[Message | None]
+ResponseQueue = queue.Queue[MessageResponse | None]
 
 
 def producer(num_messages: int, queue: MessageQueue, num_senders: int) -> None:
@@ -34,7 +41,7 @@ def producer(num_messages: int, queue: MessageQueue, num_senders: int) -> None:
 
 def sender(
     messages: MessageQueue,
-    update: Callable[[bool], None],
+    responses: ResponseQueue,
     mean_wait_time: float,
     failure_rate: float,
 ) -> None:
@@ -48,50 +55,34 @@ def sender(
             break
         t = random.uniform(0, 2 * mean_wait_time)
         time.sleep(t)
-        update(random.random() >= failure_rate)
+        responses.put(
+            MessageResponse(random.random() >= failure_rate, time.monotonic())
+        )
+    responses.put(None)
 
 
-class ProgressMonitor:
-    def __init__(
-        self, display: Callable[[int, int, float], None], update_interval: float
-    ) -> None:
-        if update_interval < 0:
-            raise ValueError("update_interval must be non-negative")
-        self.display = display
-        self.update_interval = update_interval
-        self.running = True
-        self.sent = 0
-        self.failed = 0
-        self.sending_time = 0
-        self.start_time = None
-
-    def run(self) -> None:
-        self.start_time = time.monotonic()
-        wake = self.start_time
-        while self.running:
-            self.show()
-            wake += self.update_interval
-            wait = wake - time.monotonic()
-            if wait > 0:
-                time.sleep(wake - time.monotonic())
-            else:  # skipped frame
-                wake = time.monotonic()
-        self.show()
-
-    def stop(self) -> None:
-        self.running = False
-
-    def show(self) -> None:
-        t = time.monotonic() - self.start_time
-        sent = self.sent
-        failed = self.failed
-        self.display(sent, failed, t)
-
-    def update(self, success: bool) -> None:
-        if success:
-            self.sent += 1
+def monitor(
+    responses: ResponseQueue,
+    update_interval: float,
+    display: Callable[[int, int, float], None],
+    num_senders: int,
+) -> None:
+    sent = 0
+    failed = 0
+    start_time = time.monotonic()
+    next_update = start_time + update_interval
+    while num_senders > 0:
+        response = responses.get()
+        if response is None:
+            num_senders -= 1
+            continue
+        if response.success:
+            sent += 1
         else:
-            self.failed += 1
+            failed += 1
+        if response.time > next_update: # TODO: handle out of order messages
+            display(sent, failed, response.time - start_time)
+            next_update += update_interval
 
 
 def text_display(sent: int, failed: int, t: float) -> None:
@@ -130,22 +121,25 @@ def simulate(
         raise ValueError("failure_rate must be between 0 and 1")
     if update_interval < 0:
         raise ValueError("update_interval must be non-negative")
-    monitor = ProgressMonitor(display, update_interval)
-    queue = MessageQueue()
-    threading.Thread(target=producer, args=(num_messages, queue, num_senders)).start()
+    messageQueue = MessageQueue()
+    responseQueue = ResponseQueue()
+    threading.Thread(
+        target=producer, args=(num_messages, messageQueue, num_senders)
+    ).start()
     sender_threads = []
     for _ in range(num_senders):
         sender_thread = threading.Thread(
             target=sender,
-            args=(queue, monitor.update, mean_wait_time, failure_rate),
+            args=(messageQueue, responseQueue, mean_wait_time, failure_rate),
         )
         sender_threads.append(sender_thread)
         sender_thread.start()
-    monitor_thread = threading.Thread(target=monitor.run)
+    monitor_thread = threading.Thread(
+        target=monitor, args=(responseQueue, update_interval, display, num_senders)
+    )
     monitor_thread.start()
     for sender_thread in sender_threads:
         sender_thread.join()
-    monitor.stop()
     monitor_thread.join()
 
 
