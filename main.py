@@ -1,3 +1,4 @@
+import asyncio
 import random
 import time
 import threading
@@ -24,7 +25,7 @@ MessageQueue = queue.Queue[Message | None]
 ResponseQueue = queue.Queue[MessageResponse | None]
 
 
-def producer(num_messages: int, queue: MessageQueue, num_senders: int) -> None:
+async def producer(num_messages: int, messages: MessageQueue, num_senders: int) -> None:
     for _ in range(num_messages):
         message = "".join(
             random.choices(
@@ -33,12 +34,12 @@ def producer(num_messages: int, queue: MessageQueue, num_senders: int) -> None:
             )
         )
         phone_number = "".join(random.choices("1234567890", k=10))
-        queue.put(Message(message, phone_number))
+        messages.put(Message(message, phone_number))
     for _ in range(num_senders):
-        queue.put(None)
+        messages.put(None)
 
 
-def sender(
+async def sender(
     messages: MessageQueue,
     responses: ResponseQueue,
     mean_wait_time: float,
@@ -50,12 +51,12 @@ def sender(
         raise ValueError("failure_rate must be between 0 and 1")
     for _ in iter(messages.get, None):
         t = random.uniform(0, 2 * mean_wait_time)
-        time.sleep(t)
+        await asyncio.sleep(t)
         responses.put(MessageResponse(random.random() >= failure_rate))
     responses.put(None)
 
 
-def monitor(
+async def monitor(
     responses: ResponseQueue,
     update_interval: float,
     display: Callable[[int, int, float], None],
@@ -82,7 +83,6 @@ def monitor(
             except queue.Empty:
                 return sent, failed
 
-    time.sleep(update_interval)
     while num_senders > 0:
         s, f = count()
         sent += s
@@ -91,7 +91,7 @@ def monitor(
         display(sent, failed, t - start_time)
         while t >= next_update:
             next_update += update_interval
-        time.sleep(next_update - t)
+        await asyncio.sleep(next_update - t)
 
 
 def text_display(sent: int, failed: int, t: float) -> None:
@@ -116,7 +116,7 @@ class TrackingTextDisplay:
         text_display(sent, failed, t)
 
 
-def simulate(
+async def simulate(
     update_interval: float,
     num_senders: int,
     mean_wait_time: float,
@@ -132,24 +132,23 @@ def simulate(
         raise ValueError("update_interval must be non-negative")
     messageQueue = MessageQueue()
     responseQueue = ResponseQueue()
-    threading.Thread(
-        target=producer, args=(num_messages, messageQueue, num_senders)
-    ).start()
-    sender_threads = []
-    for _ in range(num_senders):
-        sender_thread = threading.Thread(
-            target=sender,
-            args=(messageQueue, responseQueue, mean_wait_time, failure_rate),
-        )
-        sender_threads.append(sender_thread)
-        sender_thread.start()
-    monitor_thread = threading.Thread(
-        target=monitor, args=(responseQueue, update_interval, display, num_senders)
+    producer_task = asyncio.create_task(
+        producer(num_messages, messageQueue, num_senders)
     )
-    monitor_thread.start()
-    for sender_thread in sender_threads:
-        sender_thread.join()
-    monitor_thread.join()
+    monitor_task = asyncio.create_task(
+        monitor(responseQueue, update_interval, display, num_senders)
+    )
+    sender_tasks = [
+        asyncio.create_task(
+            sender(messageQueue, responseQueue, mean_wait_time, failure_rate)
+        )
+        for _ in range(num_senders)
+    ]
+    await asyncio.gather(
+        producer_task,
+        monitor_task,
+        *sender_tasks,
+    )
 
 
 if __name__ == "__main__":
@@ -212,14 +211,14 @@ if __name__ == "__main__":
     match variables["display"]:
         case "none":
             variables["display"] = lambda *_: None
-            simulate(**variables)
+            asyncio.run(simulate(**variables))
         case "text":
             variables["display"] = text_display
-            simulate(**variables)
+            asyncio.run(simulate(**variables))
         case "text_then_graph":
             display = TrackingTextDisplay()
             variables["display"] = display.display
-            simulate(**variables)
+            asyncio.run(simulate(**variables))
             from matplotlib import pyplot as plt
 
             decorate(plt)
