@@ -49,10 +49,7 @@ def sender(
         raise ValueError("mean_wait_time must be non-negative")
     if not 0 <= failure_rate <= 1:
         raise ValueError("failure_rate must be between 0 and 1")
-    while True:
-        message = messages.get()
-        if message is None:
-            break
+    for _ in iter(messages.get, None):
         t = random.uniform(0, 2 * mean_wait_time)
         time.sleep(t)
         responses.put(
